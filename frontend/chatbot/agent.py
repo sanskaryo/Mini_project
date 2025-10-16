@@ -10,6 +10,18 @@ from PIL import Image
 import google.generativeai as genai
 
 # Local modules
+def configure_gemini_api(api_key):
+    import google.generativeai as genai
+    try:
+        genai.configure(api_key=api_key)
+        return True
+    except Exception as e:
+        st.error(f"Error configuring Gemini API: {e}")
+        return False
+
+def delete_all_files():
+    st.session_state.files_info = []
+    st.sidebar.success('All files have been removed from the system')
 import api_handler
 from api_handler import send_query_get_response
 from chat_gen import generate_html
@@ -24,95 +36,6 @@ c1, c2 = st.columns([0.9, 3.2])
 with c1:
     st.caption('')
     st.caption('')
-    st.image(logo,width=120)
-
-with c2:
-    st.title('EduMentor : An AI-Enhanced Tutoring System')
-
-
-# RAG Function Description
-st.markdown("## AI Tutor Description")
-rag_description = """
-EduMentor leverages the cutting-edge RAG (Retrieval-Augmented Generation) function to provide in-depth, contextually rich answers to complex educational queries. This AI-driven approach combines extensive knowledge retrieval with dynamic response generation, offering students a deeper, more nuanced understanding of subjects and fostering a more interactive, exploratory learning environment.
-"""
-st.markdown(rag_description)
-
-# Gemini API Key Input
-# api_key = st.text_input(label='Enter your Google AI API Key', type='password')
-api_key = ""
-
-if api_key:
-    # If API key is entered, initialize the Gemini API and proceed with app functionality
-    genai.configure(api_key=api_key)
-    
-    # We'll use a model configuration instead of assistant_id
-    model_config = {
-        'model_name': 'gemini-1.5-pro',
-        'generation_config': {
-            'temperature': 0.3,
-            'top_p': 0.95,
-            'top_k': 64
-        }
-    }
-
-    # File Handling Section
-    files_info = check_and_upload_files(model_config)
-    
-    st.markdown(f'Number of files uploaded for RAG processing: :blue[{len(files_info)}]')
-    st.divider()
-
-    # Sidebar for Additional Features
-    st.sidebar.header('EduMentor: AI-Tutor')
-    st.sidebar.image(logo,width=120)
-    st.sidebar.caption('Made by D')
-    
-    # Adding a button in the sidebar to delete all files
-    if st.sidebar.button('Delete All Files'):
-        # Delete all files from the storage system
-        if 'files_info' in st.session_state:
-            st.session_state.files_info = []
-            st.sidebar.success('All files have been removed from the system')
-
-    if st.sidebar.button('Generate Chat History'):
-        html_data = generate_html(st.session_state.messages)
-        st.sidebar.download_button(label="Download Chat History as HTML",
-                                  data=html_data,
-                                  file_name="chat_history.html",
-                                  mime="text/html")
-
-
-    # Main Chat Interface
-    st.subheader('Q&A record with AI-Tutor 📜')
-    st.caption('You can choose to download the chat history in either PDF or HTML format using the options in the sidebar on the left.')
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"], unsafe_allow_html=True)
-
-    if prompt := st.chat_input("Welcome and ask a question to the AI tutor"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant", avatar='👨🏻‍🏫'):
-            message_placeholder = st.empty()
-            with st.spinner('Thinking...'):
-                response = send_query_get_response(prompt, model_config, files_info)
-            message_placeholder.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-
-else:
-    # Prompt for API key if not entered
-    st.warning("Please enter your Google AI API Key to use EduMentor.")
-
-# # Built-in modules
-# import io
-# import os
-# import subprocess
-
-# # Third-party modules
 # import streamlit as st
 # from PIL import Image
 # from openai import OpenAI
@@ -185,26 +108,28 @@ else:
 
 
 #     # Main Chat Interface
-#     st.subheader('Q&A record with AI-Tutor 📜')
-#     st.caption('You can choose to download the chat history in either PDF or HTML format using the options in the sidebar on the left.')
-#     if "messages" not in st.session_state:
-#         st.session_state.messages = []
+    st.subheader('Q&A record with AI-Tutor 📜')
+    st.caption('You can choose to download the chat history in either PDF or HTML format using the options in the sidebar on the left.')
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+        st.info('Welcome to EduMentor! Ask your questions below. Your chat history will appear here.')
 
-#     for message in st.session_state.messages:
-#         with st.chat_message(message["role"]):
-#             st.markdown(message["content"], unsafe_allow_html=True)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"], unsafe_allow_html=True)
 
-#     if prompt := st.chat_input("Welcome and ask a question to the AI tutor"):
-#         st.session_state.messages.append({"role": "user", "content": prompt})
-#         with st.chat_message("user"):
-#             st.markdown(prompt)
+    if prompt := st.chat_input("Welcome and ask a question to the AI tutor"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-#         with st.chat_message("assistant", avatar='👨🏻‍🏫'):
-#             message_placeholder = st.empty()
-#             with st.spinner('Thinking...'):
-#                 response = send_query_get_response(client,prompt,assistant_id)
-#             message_placeholder.markdown(response)
-#             st.session_state.messages.append({"role": "assistant", "content": response})
+        with st.chat_message("assistant", avatar='👨🏻‍🏫'):
+            message_placeholder = st.empty()
+            with st.spinner('Thinking...'):
+                st.info('The AI Tutor is processing your question. Please wait...')
+                response = send_query_get_response(prompt, model_config, files_info)
+            message_placeholder.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
 # else:
 #     # Prompt for API key if not entered
