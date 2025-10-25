@@ -156,6 +156,14 @@ class FlashcardReviewResponse(BaseModel):
     status: str
 
 
+class Flashcard(BaseModel):
+    id: int
+
+
+class FlashcardReview(BaseModel):
+    performance_score: int
+
+
 # Notes System Schemas
 class NoteCreate(BaseModel):
     title: str = Field(..., min_length=1)

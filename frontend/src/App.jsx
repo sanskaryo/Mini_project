@@ -14,6 +14,10 @@ import Resources from './pages/Resources'
 import PDFChat from './pages/PDFChat'
 import Planner from './pages/Planner'
 import Notes from './pages/Notes'
+import Flashcards from './pages/Flashcards'
+import PYQ from './pages/PYQ'
+import OCR from './pages/OCR'
+import StudySession from './pages/StudySession'
 
 function App() {
   const { isAuthenticated, initializeAuth } = useAuthStore()
@@ -46,12 +50,15 @@ function App() {
           <Route path="chat" element={<Chat />} />
           <Route path="progress" element={<Progress />} />
           <Route path="profile" element={<Profile />} />
-          {/* New routes for sidebar navigation */}
           <Route path="planner" element={<Planner />} />
           <Route path="resources" element={<Resources />} />
           <Route path="scriba" element={<PDFChat />} />
           <Route path="timer" element={<Timer />} />
           <Route path="notes" element={<Notes />} />
+          <Route path="flashcards" element={<Flashcards />} />
+          <Route path="pyq" element={<PYQ />} />
+          <Route path="ocr" element={<OCR />} />
+          <Route path="/study/:deckId" element={<StudySession />} />
         </Route>
         
         {/* Catch all route */}

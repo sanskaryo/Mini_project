@@ -6,7 +6,7 @@ Handles audio file transcription with chapter detection
 import os
 from typing import Dict, List, Optional
 import assemblyai as aai
-from ..utils.logger import get_logger
+from backend_py.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

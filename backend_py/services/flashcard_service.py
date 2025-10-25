@@ -12,6 +12,52 @@ from datetime import datetime, timedelta
 logger = get_logger(__name__)
 
 
+def calculate_srs(
+    performance_score: int,
+    interval: float,
+    ease_factor: float,
+    repetitions: int,
+    lapses: int
+):
+    """
+    Calculates the next review date based on the SM-2 algorithm.
+    performance_score: An integer from 0 to 5.
+                       0: "Forgot"
+                       1-2: "Hard"
+                       3-4: "Good"
+                       5: "Easy"
+    """
+    if performance_score < 3:
+        # User forgot, reset repetitions and interval
+        repetitions = 0
+        lapses += 1
+        interval = 1.0  # Reset to 1 day
+        ease_factor = max(1.3, ease_factor - 0.2) # Decrease ease factor
+    else:
+        # User remembered
+        repetitions += 1
+        if repetitions == 1:
+            interval = 1.0
+        elif repetitions == 2:
+            interval = 6.0
+        else:
+            interval = interval * ease_factor
+
+        # Adjust ease factor
+        ease_factor += (0.1 - (5 - performance_score) * (0.08 + (5 - performance_score) * 0.02))
+        if ease_factor < 1.3:
+            ease_factor = 1.3
+
+    next_review_date = datetime.utcnow() + timedelta(days=interval)
+    return {
+        "interval": interval,
+        "ease_factor": ease_factor,
+        "repetitions": repetitions,
+        "lapses": lapses,
+        "next_review_date": next_review_date.isoformat() + "+00:00",
+    }
+
+
 class FlashcardService:
     """Service for generating and managing flashcards"""
     

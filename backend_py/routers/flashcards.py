@@ -3,7 +3,7 @@ Flashcard Router
 Handles flashcard generation from notes and spaced repetition
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from typing import List
 import uuid
 from datetime import datetime
@@ -11,7 +11,8 @@ from datetime import datetime
 from ..schemas import (
     FlashcardGenerateRequest,
     FlashcardGenerateResponse,
-    GeneratedFlashcard
+    GeneratedFlashcard,
+    FlashcardReview
 )
 from ..services.flashcard_service import FlashcardService
 from ..dependencies.auth import get_current_user
@@ -213,7 +214,7 @@ async def get_due_flashcards(
 @router.post("/review/{flashcard_id}")
 async def review_flashcard(
     flashcard_id: str,
-    performance: str,  # "again", "hard", "good", "easy"
+    review: FlashcardReview,
     current_user = Depends(get_current_user)
 ):
     """
@@ -222,7 +223,7 @@ async def review_flashcard(
     - **flashcard_id**: ID of the flashcard being reviewed
     - **performance**: User's performance rating (again, hard, good, easy)
     """
-    if performance not in ["again", "hard", "good", "easy"]:
+    if review.performance_score not in ["again", "hard", "good", "easy"]:
         raise HTTPException(
             status_code=400,
             detail="Invalid performance rating. Use: again, hard, good, or easy"
@@ -246,12 +247,12 @@ async def review_flashcard(
         # Calculate next review using spaced repetition
         current_interval = 1  # You could store this in DB
         review_schedule = flashcard_service.calculate_next_review(
-            performance=performance,
+            performance=review.performance_score,
             current_interval=current_interval
         )
         
         # Update flashcard
-        is_correct = performance in ["good", "easy"]
+        is_correct = review.performance_score in ["good", "easy"]
         
         update_data = {
             "next_review_date": review_schedule["next_review_date"],
@@ -265,10 +266,10 @@ async def review_flashcard(
             .eq("id", flashcard_id)\
             .execute()
         
-        logger.info(f"Flashcard {flashcard_id} reviewed with performance: {performance}")
+        logger.info(f"Flashcard {flashcard_id} reviewed with performance: {review.performance_score}")
         
         # Award points for review
-        points = {"again": 1, "hard": 2, "good": 3, "easy": 5}[performance]
+        points = {"again": 1, "hard": 2, "good": 3, "easy": 5}[review.performance_score]
         
         points_data = {
             "user_id": current_user["id"],
@@ -368,3 +369,31 @@ async def get_flashcard_stats(
     except Exception as e:
         logger.error(f"Error fetching flashcard stats: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch statistics")
+
+
+@router.get("/deck/{deck_id}/due")
+async def get_due_cards_in_deck(
+    deck_id: int,
+    current_user = Depends(get_current_user)
+):
+    """Fetch flashcards for a specific deck that are due for review."""
+    try:
+        supabase = get_supabase_client()
+        user_id = current_user['id']
+        now = datetime.utcnow().isoformat() + "+00:00"
+
+        result = supabase.table("flashcards")\
+            .select("*")\
+            .eq("deck_id", deck_id)\
+            .eq("user_id", user_id)\
+            .lte("next_review_date", now)\
+            .order("next_review_date", desc=False)\
+            .execute()
+
+        if not result.data:
+            return {"flashcards": []}
+
+        return {"flashcards": result.data}
+    except Exception as e:
+        logger.error(f"Error fetching due cards for deck {deck_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch due cards for deck")

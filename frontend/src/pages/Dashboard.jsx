@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
 import api from '../utils/api'
+import { Link } from 'react-router-dom';
+import { FaPlus, FaBook, FaEdit, FaTrash } from 'react-icons/fa';
 
 const Dashboard = () => {
   // const { user } = useAuthStore()
@@ -14,6 +16,7 @@ const Dashboard = () => {
     weeklyActivity: []
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [decks, setDecks] = useState([]);
 
   useEffect(() => {
     fetchDashboardData()
@@ -138,6 +141,40 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg border border-arcade-teal p-6 text-center">
           <h3 className="text-sm text-gray-600 mb-2">Best Streak</h3>
           <p className="text-2xl font-bold text-arcade-teal">0 days</p>
+        </div>
+      </div>
+
+      {/* Decks Section */}
+      <div className="bg-white rounded-lg border border-arcade-teal p-6">
+        <h2 className="text-xl font-bold text-arcade-teal mb-4">Your Decks</h2>
+        
+        {/* Decks grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {decks.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500 py-10">
+              <p className="text-lg">No decks found. Create a new deck to get started!</p>
+              <Link to="/decks/new" className="mt-4 inline-block bg-arcade-teal text-white px-4 py-2 rounded-md hover:bg-arcade-green transition">
+                <FaPlus className="mr-2" />
+                Create New Deck
+              </Link>
+            </div>
+          ) : (
+            decks.map(deck => (
+              <div key={deck.id} className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">{deck.name}</h3>
+                  <p className="text-gray-600 mt-2">{deck.description}</p>
+                </div>
+                <div className="mt-6 flex justify-end space-x-2">
+                  <Link to={`/study/${deck.id}`} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-semibold flex items-center">
+                    <FaBook className="mr-2" />
+                    Study
+                  </Link>
+                  {/* Edit and Delete buttons can be added here later */}
+                </div>
+              </div>
+            ))
+          }
         </div>
       </div>
     </div>
