@@ -1,0 +1,159 @@
+@startuml RL-Driven Personalized Education Tutor Architecture
+
+!define RECTANGLE class
+
+package "Frontend Layer" {
+    [Student Web App] as StudentWeb
+    [Teacher Dashboard] as TeacherDash
+    [Parent Portal] as ParentPortal
+    [Mobile Apps] as MobileApps
+    [Content Authoring Tool] as ContentTool
+}
+
+package "API Gateway" {
+    [Load Balancer] as LB
+    [API Gateway] as Gateway
+    [Authentication Service] as Auth
+    [Rate Limiter] as RateLimit
+}
+
+package "Microservices Layer" {
+    package "Core Services" {
+        [User Management Service] as UserMgmt
+        [Content Management Service] as ContentMgmt
+        [Assessment Service] as Assessment
+        [Progress Tracking Service] as Progress
+        [Notification Service] as Notification
+    }
+    
+    package "AI/ML Services" {
+        [RL Adaptation Engine] as RLEngine
+        [Learning Style Recognition] as StyleRecog
+        [Performance Prediction] as PerfPred
+        [Content Recommendation] as ContentRec
+        [Natural Language Processing] as NLP
+    }
+    
+    package "Media Services" {
+        [Video Streaming Service] as VideoStream
+        [Voice Processing Service] as VoiceProc
+        [Interactive Content Service] as InteractiveContent
+        [File Storage Service] as FileStorage
+    }
+    
+    package "Analytics Services" {
+        [Real-time Analytics] as RealTimeAnalytics
+        [Reporting Service] as Reporting
+        [Data Pipeline Service] as DataPipeline
+        [ML Model Training Service] as MLTraining
+    }
+    
+    package "Gamification Services" {
+        [Achievement Service] as Achievement
+        [Leaderboard Service] as Leaderboard
+        [Reward System] as RewardSystem
+    }
+}
+
+package "Data Layer" {
+    database "PostgreSQL\n(Primary DB)" as PostgresDB
+    database "MongoDB\n(Content & Media)" as MongoDB
+    database "Redis\n(Cache & Sessions)" as Redis
+    database "InfluxDB\n(Time Series Analytics)" as InfluxDB
+    database "Elasticsearch\n(Search & Logs)" as Elasticsearch
+}
+
+package "External Services" {
+    [CDN (CloudFlare)] as CDN
+    [Cloud Storage (AWS S3)] as CloudStorage
+    [Video Processing (AWS Elemental)] as VideoProcessing
+    [Speech-to-Text API] as STT
+    [Text-to-Speech API] as TTS
+    [LMS Integration APIs] as LMSIntegration
+}
+
+package "Infrastructure" {
+    [Kubernetes Cluster] as K8s
+    [Message Queue (RabbitMQ)] as MessageQueue
+    [Monitoring (Prometheus)] as Monitoring
+    [Logging (ELK Stack)] as Logging
+    [CI/CD Pipeline] as CICD
+}
+
+' Connections
+StudentWeb --> LB
+TeacherDash --> LB
+ParentPortal --> LB
+MobileApps --> LB
+ContentTool --> LB
+
+LB --> Gateway
+Gateway --> Auth
+Gateway --> RateLimit
+
+Gateway --> UserMgmt
+Gateway --> ContentMgmt
+Gateway --> Assessment
+Gateway --> Progress
+Gateway --> Notification
+
+Gateway --> RLEngine
+Gateway --> StyleRecog
+Gateway --> PerfPred
+Gateway --> ContentRec
+Gateway --> NLP
+
+Gateway --> VideoStream
+Gateway --> VoiceProc
+Gateway --> InteractiveContent
+Gateway --> FileStorage
+
+Gateway --> RealTimeAnalytics
+Gateway --> Reporting
+Gateway --> DataPipeline
+Gateway --> MLTraining
+
+Gateway --> Achievement
+Gateway --> Leaderboard
+Gateway --> RewardSystem
+
+UserMgmt --> PostgresDB
+ContentMgmt --> MongoDB
+Assessment --> PostgresDB
+Progress --> InfluxDB
+Notification --> Redis
+
+RLEngine --> PostgresDB
+RLEngine --> Redis
+StyleRecog --> PostgresDB
+PerfPred --> InfluxDB
+ContentRec --> MongoDB
+NLP --> Elasticsearch
+
+VideoStream --> CloudStorage
+VoiceProc --> STT
+VoiceProc --> TTS
+FileStorage --> CloudStorage
+
+RealTimeAnalytics --> InfluxDB
+Reporting --> PostgresDB
+DataPipeline --> MessageQueue
+MLTraining --> CloudStorage
+
+Achievement --> PostgresDB
+Leaderboard --> Redis
+RewardSystem --> PostgresDB
+
+VideoStream --> CDN
+InteractiveContent --> CDN
+FileStorage --> CDN
+
+VideoProcessing --> CloudStorage
+ContentMgmt --> VideoProcessing
+
+K8s --> MessageQueue
+K8s --> Monitoring
+K8s --> Logging
+K8s --> CICD
+
+@enduml
